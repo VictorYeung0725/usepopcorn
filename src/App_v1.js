@@ -88,12 +88,15 @@ export default function App() {
 
   useEffect(
     function () {
+      const controller = new AbortController();
+
       async function fetchMovie() {
         try {
           setIsLoading(true);
           setError('');
           const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+            `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`,
+            { signal: controller.signal }
           );
           if (!res.ok)
             throw new Error('Something went Wrong with fetching Movie');
@@ -102,9 +105,11 @@ export default function App() {
           if (data.Response === 'False') throw new Error('Movie not Found');
           setMovies(data.Search);
           setIsLoading(false);
+          setError('');
         } catch (err) {
-          console.error(err.message);
-          setError(err.message);
+          if (err.name !== 'AbortError') {
+            setError(err.message);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -114,7 +119,12 @@ export default function App() {
         setError('');
         return;
       }
+
+      handleCloseMovie();
       fetchMovie();
+      return function () {
+        controller.abort();
+      };
     },
     [query]
   );
@@ -263,7 +273,6 @@ function MovieDetail({
   const [userRating, setUserRating] = useState('');
 
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
-  console.log(isWatched);
 
   const watchedUserRating = watched.find(
     (movie) => movie.imdbID === selectedId
@@ -296,6 +305,22 @@ function MovieDetail({
     handleAddWatched(newWatchedMovie);
     handleCloseMovie();
   }
+
+  useEffect(
+    function () {
+      document.addEventListener('keydown', callBack);
+      function callBack(e) {
+        if (e.code === 'Escape') {
+          handleCloseMovie();
+        }
+      }
+      return function () {
+        document.removeEventListener('keydown', callBack);
+      };
+    },
+    [handleCloseMovie]
+  );
+
   useEffect(
     function () {
       async function getMovieDetails() {
@@ -314,7 +339,14 @@ function MovieDetail({
 
   useEffect(
     function () {
+      if (!title) return;
       document.title = `Movie | ${title}`;
+
+      // will get execute when the title unMount
+      // the closure of the function will always remember all the variable at the present at then time the function has been created /
+      return function () {
+        document.title = 'usePornCorn';
+      };
     },
     [title]
   );

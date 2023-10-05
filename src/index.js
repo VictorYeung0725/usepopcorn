@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 // import App from './App';
 // import App_v1 from './App-v1';
-import App_v2 from './App_v2';
+import AppV2 from './AppV2';
 
 // function Test() {
 //   const [numOfRating, setNumOfRating] = useState(0);
@@ -23,6 +23,6 @@ root.render(
     />
     <StartRating maxRating={10} color="red" defaultRating={3} />
     <Test /> */}
-    <App_v2 />
+    <AppV2 />
   </React.StrictMode>
 );
